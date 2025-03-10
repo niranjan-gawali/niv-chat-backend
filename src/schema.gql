@@ -1,0 +1,149 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type UserOutput {
+  _id: String!
+  firstName: String!
+  lastName: String!
+  email: String!
+  username: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  profilePicture: String
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type UserBasicOutput {
+  _id: String!
+  email: String!
+  username: String!
+}
+
+type CreateMessageOutput {
+  """message id"""
+  _id: ID!
+
+  """message content"""
+  content: String!
+
+  """Message creation date"""
+  createdAt: DateTime
+
+  """Message update date"""
+  updatedAt: DateTime
+}
+
+type ChatOutput {
+  _id: String!
+  isGroupChat: Boolean!
+  users: [UserOutput!]
+  groupName: String
+  groupAdmin: String
+  lastMessage: CreateMessageOutput
+}
+
+type GetMessageOutput {
+  """message id"""
+  _id: ID!
+
+  """message content"""
+  content: String!
+
+  """Message creation date"""
+  createdAt: DateTime
+
+  """Message update date"""
+  updatedAt: DateTime
+  senderUser: UserOutput
+}
+
+type RemoveMessageOutput {
+  """message id"""
+  _id: ID!
+
+  """message content"""
+  message: String!
+}
+
+type Query {
+  getMyInformation: UserBasicOutput!
+  findChats(chatInput: ChatInput): [ChatOutput!]!
+  findOne(id: String!): ChatOutput!
+  getMessages(getMessageInput: GetMessageInput!): [GetMessageOutput!]!
+  getMessage(_id: String!): GetMessageOutput!
+}
+
+input ChatInput {
+  """Page number"""
+  pageNo: Int
+}
+
+input GetMessageInput {
+  """Chat Id"""
+  chatId: ID!
+
+  """Page number"""
+  pageNo: Int
+}
+
+type Mutation {
+  createUser(createUserInput: CreateUserInput!): UserOutput!
+  updateUser(updateUserInput: UpdateUserInput!): UserOutput!
+  createChat(createChatInput: CreateChatInput!): ChatOutput!
+  updateChat(updateChatInput: UpdateChatInput!): ChatOutput!
+  removeChat(id: String!): ChatOutput!
+  createMessage(createMessageInput: CreateMessageInput!): CreateMessageOutput!
+  updateMessage(updateMessageInput: UpdateMessageInput!): GetMessageOutput!
+  removeMessage(_id: ID!): RemoveMessageOutput!
+}
+
+input CreateUserInput {
+  firstName: String!
+  lastName: String!
+  email: String!
+  password: String!
+  username: String!
+  profilePicture: String
+}
+
+input UpdateUserInput {
+  firstName: String
+  lastName: String
+  email: String
+  password: String
+  username: String
+  profilePicture: String
+}
+
+input CreateChatInput {
+  isGroupChat: Boolean! = false
+  users: [String!]!
+  groupName: String
+  groupAdmin: String
+}
+
+input UpdateChatInput {
+  isGroupChat: Boolean = false
+  users: [String!]
+  groupName: String
+  groupAdmin: String
+  _id: ID!
+}
+
+input CreateMessageInput {
+  """Chat Id"""
+  chatId: ID!
+
+  """message content"""
+  content: String!
+}
+
+input UpdateMessageInput {
+  _id: ID!
+  content: String!
+}
