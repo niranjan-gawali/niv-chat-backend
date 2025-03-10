@@ -19,6 +19,38 @@ A real-time chat backend built with [NestJS](https://nestjs.com/), [GraphQL](htt
 - **Auth:** Passport.js with JWT
 - **Language:** TypeScript
 
+## High-Level Architecture
+
+The system is divided into several modules that interact with each other. The diagram below illustrates the overall architecture:
+
+![High-Level Architecture](./readme-images/high-level-diagram.png)
+
+- **Client:** Web or mobile applications send GraphQL requests.
+- **Server:** NestJS GraphQL server handles requests through its Auth, Users, Chats, and Messages modules.
+- **Database:** MongoDB stores all the data.
+
+## Data Model (ER Diagram)
+
+The core entities in this project are **User**, **Chat**, and **Message**. Their relationships are illustrated below:
+
+![Database ER Diagram](./readme-images/database-er-diagram.png)
+
+- **User:** Represents an individual using the chat app.
+- **Chat:** Represents a conversation. It contains an array of user references and a reference to the latest message.
+- **Message:** Represents an individual message within a chat, linked to both a chat and the sender.
+
+## Sequence Diagram: Message Flow
+
+The following diagram shows the sequence of events when a user sends a message:
+
+![Sequence Diagram](./readme-images/sequence-diagram.png)
+
+1. **User** sends a message via a GraphQL mutation.
+2. **Message Resolver** passes the request to the **MessageService**.
+3. **MessageService** creates a new message through the **MessageRepository**.
+4. After creation, **MessageService** calls **ChatService** to update the chat's lastMessage field via **ChatRepository**.
+5. The updated message and chat data are returned to the client.
+
 ## Installation
 
 1. **Clone the repository:**
@@ -41,7 +73,7 @@ A real-time chat backend built with [NestJS](https://nestjs.com/), [GraphQL](htt
    ```
 
 3. **Set up environment variables:**  
-   Create a `.env` file in the project root:
+   Create a `.env` file in the project root and add:
 
    ```env
    PORT=3000
@@ -57,38 +89,54 @@ A real-time chat backend built with [NestJS](https://nestjs.com/), [GraphQL](htt
 
 ## Usage
 
-- **GraphQL Playground:**  
-  Open your browser at [http://localhost:3000/graphql](http://localhost:3000/graphql) to test queries and mutations.
+### GraphQL Playground
 
-- **Example Query:**
-  ```graphql
-  query {
-    findChats(chatInput: { pageNo: 1 }) {
-      edges {
-        node {
-          _id
-          isGroupChat
-          groupName
-          lastMessage {
-            _id
-            content
-          }
-          users {
-            _id
-            firstName
-            lastName
-            email
-          }
-        }
-        cursor
-      }
-      pageInfo {
-        endCursor
-        hasNextPage
-      }
+After starting the application, open your browser at [http://localhost:3000/graphql](http://localhost:3000/graphql) to test queries and mutations.
+
+### Example Query: Find Chats with Pagination
+
+```graphql
+query findChats {
+  findChats(chatInput: { pageNo: 2 }) {
+    _id
+    isGroupChat
+    groupName
+    groupAdmin
+    lastMessage {
+      _id
+      content
+      createdAt
+      updatedAt
     }
   }
-  ```
+}
+```
+
+### Example Mutation: Send a Message
+
+```graphql
+mutation CreateMessage {
+  createMessage(
+    createMessageInput: {
+      chatId: "67cdfc958da79356923b286e"
+      content: "Third Message"
+    }
+  ) {
+    _id
+    content
+  }
+}
+```
+
+### Example Mutation: Remove a Message
+
+```graphql
+mutation RemoveMessage {
+  removeMessage(_id: "67ce0bf8767706ff178c5927") {
+    _id
+  }
+}
+```
 
 ## Project Structure
 
@@ -103,17 +151,6 @@ niv-chat-backend/
 └── .env
 ```
 
-## Contributing
-
-1. Fork the repository.
-2. Create a branch for your feature or bug fix.
-3. Write tests.
-4. Submit a pull request.
-
-## License
-
-MIT License
-
 ## Contact
 
-For questions or support, please open an issue or contact [gawaliniranjan@gmail.com](mailto:gawaliniranjan@gmail.com).
+For questions or support, please open an issue on GitHub or contact [gawaliniranjan@gmail.com](mailto:gawaliniranjan@gmail.com).
