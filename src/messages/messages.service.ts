@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateMessageInput } from './dto/create-message/create-message.input';
 // import { UpdateMessageInput } from './dto/update-message.input';
 import { MessageRepository } from './messages.repository';
@@ -18,6 +22,19 @@ export class MessagesService {
 
   async create(createMessageInput: CreateMessageInput, userId: string) {
     const { chatId, content } = createMessageInput;
+    const chatObj = await this.chatService.findOne(chatId, userId);
+
+    if (!chatObj) {
+      throw new NotFoundException('Chat with mentioned Id does not exists !');
+    }
+
+    const isUserInChat = chatObj.users?.some((user) =>
+      new Types.ObjectId(user._id).equals(new Types.ObjectId(userId)),
+    );
+
+    if (!isUserInChat) {
+      throw new ForbiddenException('You do not have access to this chat');
+    }
 
     const message: any = {
       chatId: new Types.ObjectId(chatId),

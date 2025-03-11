@@ -104,8 +104,6 @@ export class ChatService {
       { $lookup: lookup },
     ]);
 
-    console.log('RESULT ', result);
-
     if (result.length === 0) {
       throw new NotFoundException('Chat not found or you don’t have access');
     }
