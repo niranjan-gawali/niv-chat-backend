@@ -8,7 +8,10 @@ import { CreateMessageInput } from './dto/create-message/create-message.input';
 import { MessageRepository } from './messages.repository';
 import { Types } from 'mongoose';
 import { GetMessageInput } from './dto/get-message/get-message.input';
-import { GetMessageOutput } from './dto/get-message/get-message.output';
+import {
+  GetMessageOutput,
+  GetMessageOutputData,
+} from './dto/get-message/get-message.output';
 import { UpdateMessageInput } from './dto/update-message/update-message.input';
 import { ChatService } from 'src/chat/chat.service';
 import { PAGE_LIMIT } from 'src/common/constants/common-constants';
@@ -28,7 +31,7 @@ export class MessagesService {
       throw new NotFoundException('Chat with mentioned Id does not exists !');
     }
 
-    const isUserInChat = chatObj.users?.some((user) =>
+    const isUserInChat = chatObj.users.some((user) =>
       new Types.ObjectId(user._id).equals(new Types.ObjectId(userId)),
     );
 
@@ -55,7 +58,7 @@ export class MessagesService {
   async findAll(
     getMessageInput: GetMessageInput,
     userId: string,
-  ): Promise<GetMessageOutput[]> {
+  ): Promise<GetMessageOutput> {
     const pageNo = getMessageInput.pageNo ?? 1;
     const skip = (pageNo - 1) * PAGE_LIMIT;
 
@@ -85,7 +88,7 @@ export class MessagesService {
       'chatData.users': { $in: [new Types.ObjectId(userId)] },
     };
 
-    return await this.messageRepository.model.aggregate([
+    const messageResult = await this.messageRepository.model.aggregate([
       { $match: match },
       { $lookup: lookup },
       { $unwind: unwind },
@@ -102,6 +105,14 @@ export class MessagesService {
       { $skip: skip },
       { $limit: PAGE_LIMIT },
     ]);
+
+    const totalMessageCount =
+      await this.messageRepository.model.countDocuments();
+
+    return {
+      messages: messageResult as GetMessageOutputData[],
+      totalMessageCount,
+    };
   }
 
   async findOne(_id: string, userId: string): Promise<GetMessageOutput | null> {

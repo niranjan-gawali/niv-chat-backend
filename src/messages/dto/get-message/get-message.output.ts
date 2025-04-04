@@ -1,9 +1,9 @@
-import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { ObjectType, Field, ID, Int } from '@nestjs/graphql';
 import { IsMongoId } from 'class-validator';
 import { UserOutput } from 'src/users/dto/user.output/user.output';
 
 @ObjectType()
-export class GetMessageOutput {
+export class GetMessageOutputData {
   @Field(() => ID, { description: 'message id' })
   @IsMongoId()
   _id: string;
@@ -19,4 +19,13 @@ export class GetMessageOutput {
 
   @Field(() => UserOutput, { nullable: true })
   senderUser?: UserOutput;
+}
+
+@ObjectType()
+export class GetMessageOutput {
+  @Field(() => [GetMessageOutputData])
+  messages: GetMessageOutputData[];
+
+  @Field(() => Int)
+  totalMessageCount: number;
 }

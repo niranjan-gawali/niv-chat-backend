@@ -35,7 +35,7 @@ export class ChatResolver {
   }
 
   // NOTE: Right now building pagination with offset but in future will need to convert it into cursor
-  @Query(() => [ChatOutput], { name: 'findChats' })
+  @Query(() => ChatOutput, { name: 'findChats' })
   @UseGuards(GqlAuthGuard)
   findChats(
     @CurrentUser() user: TokenPayload,

@@ -5,7 +5,7 @@ import { ChatRepository } from './chat.repository';
 import { Types } from 'mongoose';
 import { UpdateChatInput } from './dto/update-chat.input/update-chat.input';
 // import { Chat } from './entities/chat.entity';
-import { ChatOutput } from './dto/chat.output/chat.output';
+import { ChatOutput, ChatOutputData } from './dto/chat.output/chat.output';
 import { PAGE_LIMIT } from 'src/common/constants/common-constants';
 
 @Injectable()
@@ -46,7 +46,7 @@ export class ChatService {
     );
   }
 
-  async findAll(userId: string, pageNo: number = 1): Promise<ChatOutput[]> {
+  async findAll(userId: string, pageNo: number = 1): Promise<ChatOutput> {
     const skip = (pageNo - 1) * PAGE_LIMIT;
 
     const lookupUser = {
@@ -70,7 +70,7 @@ export class ChatService {
 
     const match = { users: { $in: [new Types.ObjectId(userId)] } };
 
-    return await this.chatRepository.model.aggregate([
+    const result = await this.chatRepository.model.aggregate([
       { $match: match },
       {
         $lookup: lookupUser,
@@ -102,9 +102,13 @@ export class ChatService {
       { $skip: skip },
       { $limit: PAGE_LIMIT },
     ]);
+
+    const totalChatCount = await this.chatRepository.model.countDocuments();
+
+    return { chats: result as ChatOutputData[], totalChatCount };
   }
 
-  async findOne(id: string, userId: string): Promise<ChatOutput | null> {
+  async findOne(id: string, userId: string): Promise<ChatOutputData | null> {
     const lookup = {
       from: 'users',
       localField: 'users',

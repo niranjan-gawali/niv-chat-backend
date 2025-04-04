@@ -1,9 +1,9 @@
-import { Field, ObjectType } from '@nestjs/graphql';
-import { CreateMessageOutput } from 'src/messages/dto/create-message/create-message.output';
-import { UserOutput } from 'src/users/dto/user.output/user.output';
+import { Field, ObjectType, Int } from '@nestjs/graphql';
+import { CreateMessageOutput } from 'src/messages';
+import { UserOutput } from 'src/users';
 
 @ObjectType()
-export class ChatOutput {
+export class ChatOutputData {
   @Field()
   _id: string;
 
@@ -11,7 +11,7 @@ export class ChatOutput {
   isGroupChat?: boolean;
 
   @Field(() => [UserOutput], { nullable: true })
-  users?: UserOutput[];
+  users: UserOutput[];
 
   @Field({ nullable: true })
   groupName?: string;
@@ -21,4 +21,13 @@ export class ChatOutput {
 
   @Field(() => CreateMessageOutput, { nullable: true })
   lastMessage?: CreateMessageOutput;
+}
+
+@ObjectType()
+export class ChatOutput {
+  @Field(() => [ChatOutputData])
+  chats: ChatOutputData[];
+
+  @Field(() => Int)
+  totalChatCount: number;
 }

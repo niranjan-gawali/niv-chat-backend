@@ -39,16 +39,7 @@ type CreateMessageOutput {
   updatedAt: DateTime
 }
 
-type ChatOutput {
-  _id: String!
-  isGroupChat: Boolean!
-  users: [UserOutput!]
-  groupName: String
-  groupAdmin: String
-  lastMessage: CreateMessageOutput
-}
-
-type GetMessageOutput {
+type GetMessageOutputData {
   """message id"""
   _id: ID!
 
@@ -63,6 +54,11 @@ type GetMessageOutput {
   senderUser: UserOutput
 }
 
+type GetMessageOutput {
+  messages: [GetMessageOutputData!]!
+  totalMessageCount: Int!
+}
+
 type RemoveMessageOutput {
   """message id"""
   _id: ID!
@@ -71,11 +67,25 @@ type RemoveMessageOutput {
   message: String!
 }
 
+type ChatOutputData {
+  _id: String!
+  isGroupChat: Boolean!
+  users: [UserOutput!]
+  groupName: String
+  groupAdmin: String
+  lastMessage: CreateMessageOutput
+}
+
+type ChatOutput {
+  chats: [ChatOutputData!]!
+  totalChatCount: Int!
+}
+
 type Query {
   getMyInformation: UserBasicOutput!
-  findChats(chatInput: ChatInput): [ChatOutput!]!
+  findChats(chatInput: ChatInput): ChatOutput!
   findOne(id: String!): ChatOutput!
-  getMessages(getMessageInput: GetMessageInput!): [GetMessageOutput!]!
+  getMessages(getMessageInput: GetMessageInput!): GetMessageOutput!
   getMessage(_id: String!): GetMessageOutput!
 }
 

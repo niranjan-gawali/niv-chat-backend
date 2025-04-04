@@ -26,7 +26,7 @@ export class MessagesResolver {
     return this.messagesService.create(createMessageInput, user._id);
   }
 
-  @Query(() => [GetMessageOutput])
+  @Query(() => GetMessageOutput)
   @UseGuards(GqlAuthGuard)
   getMessages(
     @Args('getMessageInput') getMessageInput: GetMessageInput,
