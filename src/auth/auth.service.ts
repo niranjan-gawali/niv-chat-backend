@@ -36,7 +36,9 @@ export class AuthService {
   logout(response: Response) {
     response.cookie('Authentication', '', {
       httpOnly: true,
+      secure: false,
       expires: new Date(0),
+      path: '/',
     });
   }
 }

@@ -68,8 +68,6 @@ export class ChatService {
       preserveNullAndEmptyArrays: true,
     };
 
-    console.log('USER ID : ', userId);
-
     const match = { users: { $in: [new Types.ObjectId(userId)] } };
 
     return await this.chatRepository.model.aggregate([
@@ -80,6 +78,26 @@ export class ChatService {
       { $lookup: lookupLastMessage },
       {
         $unwind: unwindLastMessage,
+      },
+      {
+        $addFields: {
+          users: {
+            $map: {
+              input: '$users',
+              as: 'user',
+              in: {
+                $mergeObjects: [
+                  '$$user',
+                  {
+                    isLoggedInUser: {
+                      $eq: ['$$user._id', new Types.ObjectId(userId)],
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
       },
       { $skip: skip },
       { $limit: PAGE_LIMIT },

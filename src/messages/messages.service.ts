@@ -92,6 +92,13 @@ export class MessagesService {
       { $lookup: chatLookup },
       { $unwind: chatUnwind },
       { $match: matchChatUser },
+      {
+        $addFields: {
+          'senderUser.isLoggedInUser': {
+            $eq: ['$senderId', new Types.ObjectId(userId)],
+          },
+        },
+      },
       { $skip: skip },
       { $limit: PAGE_LIMIT },
     ]);
@@ -131,6 +138,13 @@ export class MessagesService {
       { $lookup: chatLookup },
       { $unwind: chatUnwind },
       { $match: matchChatUser },
+      {
+        $addFields: {
+          'senderUser.isLoggedInUser': {
+            $eq: ['$senderId', new Types.ObjectId(userId)],
+          },
+        },
+      },
     ]);
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return

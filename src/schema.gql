@@ -11,6 +11,7 @@ type UserOutput {
   createdAt: DateTime!
   updatedAt: DateTime!
   profilePicture: String
+  isLoggedInUser: Boolean
 }
 
 """

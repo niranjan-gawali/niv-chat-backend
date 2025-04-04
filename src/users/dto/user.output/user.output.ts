@@ -25,4 +25,7 @@ export class UserOutput {
 
   @Field({ nullable: true })
   profilePicture?: string;
+
+  @Field({ nullable: true })
+  isLoggedInUser?: boolean;
 }
