@@ -1,8 +1,8 @@
-import { Query, Resolver, Mutation, Args } from '@nestjs/graphql';
+import { Query, Resolver, Mutation, Args, ID } from '@nestjs/graphql';
 import { ChatService } from './chat.service';
 import { CreateChatInput } from './dto/create-chat.input/create-chat.input';
 import { UpdateChatInput } from './dto/update-chat.input/update-chat.input';
-import { ChatOutput } from './dto/chat.output/chat.output';
+import { ChatOutput, ChatOutputData } from './dto/chat.output/chat.output';
 import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
@@ -12,7 +12,7 @@ import { ChatInput } from './dto/chat.output/chat.input';
 @Resolver()
 export class ChatResolver {
   constructor(private readonly chatService: ChatService) {}
-  @Mutation(() => ChatOutput)
+  @Mutation(() => ChatOutputData)
   @UseGuards(GqlAuthGuard)
   createChat(
     @Args('createChatInput') createChatInput: CreateChatInput,
@@ -46,10 +46,10 @@ export class ChatResolver {
     return this.chatService.findAll(user._id, pageNo);
   }
 
-  @Query(() => ChatOutput)
+  @Query(() => ChatOutputData)
   @UseGuards(GqlAuthGuard)
-  findOne(
-    @Args('id', { type: () => String }) id: string,
+  findChat(
+    @Args('id', { type: () => ID }) id: string,
     @CurrentUser() user: TokenPayload,
   ) {
     return this.chatService.findOne(id, user._id);

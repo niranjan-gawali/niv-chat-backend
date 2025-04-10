@@ -116,6 +116,18 @@ export class ChatService {
       as: 'users',
     };
 
+    const lookupLastMessage = {
+      from: 'messages',
+      localField: 'lastMessage',
+      foreignField: '_id',
+      as: 'lastMessage',
+    };
+
+    const unwindLastMessage = {
+      path: '$lastMessage',
+      preserveNullAndEmptyArrays: true,
+    };
+
     const match = {
       _id: new Types.ObjectId(id),
       users: { $in: [new Types.ObjectId(userId)] },
@@ -124,6 +136,10 @@ export class ChatService {
     const result = await this.chatRepository.model.aggregate([
       { $match: match },
       { $lookup: lookup },
+      { $lookup: lookupLastMessage },
+      {
+        $unwind: unwindLastMessage,
+      },
     ]);
 
     if (result.length === 0) {
