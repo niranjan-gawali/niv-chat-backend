@@ -39,7 +39,7 @@ type CreateMessageOutput {
   updatedAt: DateTime
 }
 
-type GetMessageOutputData {
+type GetMessageOutput {
   """message id"""
   _id: ID!
 
@@ -52,11 +52,6 @@ type GetMessageOutputData {
   """Message update date"""
   updatedAt: DateTime
   senderUser: UserOutput
-}
-
-type GetMessageOutput {
-  messages: [GetMessageOutputData!]!
-  totalMessageCount: Int!
 }
 
 type RemoveMessageOutput {
@@ -85,7 +80,7 @@ type Query {
   getMyInformation: UserBasicOutput!
   findChats(chatInput: ChatInput): ChatOutput!
   findChat(id: ID!): ChatOutputData!
-  getMessages(getMessageInput: GetMessageInput!): GetMessageOutput!
+  getMessages(getMessageInput: GetMessageInput!): [GetMessageOutput!]!
   getMessage(_id: String!): GetMessageOutput!
 }
 
@@ -98,8 +93,8 @@ input GetMessageInput {
   """Chat Id"""
   chatId: ID!
 
-  """Page number"""
-  pageNo: Int
+  """message id"""
+  cursor: String
 }
 
 type Mutation {

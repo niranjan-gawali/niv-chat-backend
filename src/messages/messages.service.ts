@@ -8,10 +8,7 @@ import { CreateMessageInput } from './dto/create-message/create-message.input';
 import { MessageRepository } from './messages.repository';
 import { Types } from 'mongoose';
 import { GetMessageInput } from './dto/get-message/get-message.input';
-import {
-  GetMessageOutput,
-  GetMessageOutputData,
-} from './dto/get-message/get-message.output';
+import { GetMessageOutput } from './dto/get-message/get-message.output';
 import { UpdateMessageInput } from './dto/update-message/update-message.input';
 import { ChatService } from 'src/chat/chat.service';
 import { PAGE_LIMIT } from 'src/common/constants/common-constants';
@@ -58,9 +55,26 @@ export class MessagesService {
   async findAll(
     getMessageInput: GetMessageInput,
     userId: string,
-  ): Promise<GetMessageOutput> {
-    const pageNo = getMessageInput.pageNo ?? 1;
-    const skip = (pageNo - 1) * PAGE_LIMIT;
+  ): Promise<GetMessageOutput[]> {
+    console.log(getMessageInput);
+
+    let primaryMatch: Record<string, any> = {
+      chatId: new Types.ObjectId(getMessageInput.chatId),
+    };
+
+    if (getMessageInput.cursor) {
+      const singleMessageData: GetMessageOutput | null = await this.findOne(
+        getMessageInput.cursor,
+        userId,
+      );
+
+      if (singleMessageData && singleMessageData.createdAt) {
+        primaryMatch = {
+          ...primaryMatch,
+          createdAt: { $lt: singleMessageData.createdAt },
+        };
+      }
+    }
 
     const lookup = {
       from: 'users',
@@ -80,16 +94,16 @@ export class MessagesService {
 
     const chatUnwind = { path: '$chatData', preserveNullAndEmptyArrays: true };
 
-    const match = {
-      chatId: new Types.ObjectId(getMessageInput.chatId),
-    };
+    // const match = {
+    //   chatId: new Types.ObjectId(getMessageInput.chatId),
+    // };
 
     const matchChatUser = {
       'chatData.users': { $in: [new Types.ObjectId(userId)] },
     };
 
-    const messageResult = await this.messageRepository.model.aggregate([
-      { $match: match },
+    return await this.messageRepository.model.aggregate([
+      { $match: primaryMatch },
       { $lookup: lookup },
       { $unwind: unwind },
       { $lookup: chatLookup },
@@ -102,17 +116,9 @@ export class MessagesService {
           },
         },
       },
-      { $skip: skip },
+      { $sort: { createdAt: -1 } },
       { $limit: PAGE_LIMIT },
     ]);
-
-    const totalMessageCount =
-      await this.messageRepository.model.countDocuments();
-
-    return {
-      messages: messageResult as GetMessageOutputData[],
-      totalMessageCount,
-    };
   }
 
   async findOne(_id: string, userId: string): Promise<GetMessageOutput | null> {
