@@ -5,8 +5,9 @@ import { ChatRepository } from './chat.repository';
 import { Types } from 'mongoose';
 import { UpdateChatInput } from './dto/update-chat.input/update-chat.input';
 // import { Chat } from './entities/chat.entity';
-import { ChatOutput, ChatOutputData } from './dto/chat.output/chat.output';
+import { ChatOutput } from './dto/chat.output/chat.output';
 import { PAGE_LIMIT } from 'src/common/constants/common-constants';
+import { ChatInput } from './dto/chat.output/chat.input';
 
 @Injectable()
 export class ChatService {
@@ -46,8 +47,23 @@ export class ChatService {
     );
   }
 
-  async findAll(userId: string, pageNo: number = 1): Promise<ChatOutput> {
-    const skip = (pageNo - 1) * PAGE_LIMIT;
+  async findAll(userId: string, chatInput: ChatInput): Promise<ChatOutput[]> {
+    let match: Record<string, any> = {
+      users: { $in: [new Types.ObjectId(userId)] },
+    };
+
+    if (chatInput.cursor) {
+      const chatData: ChatOutput | null = await this.findOne(
+        chatInput.cursor,
+        userId,
+      );
+
+      if (chatData && chatData.createdAt) {
+        match = { ...match, createdAt: { $lt: chatData.createdAt } };
+      }
+    }
+
+    console.log(match);
 
     const lookupUser = {
       from: 'users',
@@ -68,9 +84,7 @@ export class ChatService {
       preserveNullAndEmptyArrays: true,
     };
 
-    const match = { users: { $in: [new Types.ObjectId(userId)] } };
-
-    const result = await this.chatRepository.model.aggregate([
+    return await this.chatRepository.model.aggregate([
       { $match: match },
       {
         $lookup: lookupUser,
@@ -99,16 +113,12 @@ export class ChatService {
           },
         },
       },
-      { $skip: skip },
-      { $limit: PAGE_LIMIT },
+      { $sort: { createdAt: -1 } },
+      { $limit: 1 },
     ]);
-
-    const totalChatCount = await this.chatRepository.model.countDocuments();
-
-    return { chats: result as ChatOutputData[], totalChatCount };
   }
 
-  async findOne(id: string, userId: string): Promise<ChatOutputData | null> {
+  async findOne(id: string, userId: string): Promise<ChatOutput | null> {
     const lookup = {
       from: 'users',
       localField: 'users',

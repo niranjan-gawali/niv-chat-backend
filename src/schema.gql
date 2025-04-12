@@ -62,7 +62,7 @@ type RemoveMessageOutput {
   message: String!
 }
 
-type ChatOutputData {
+type ChatOutput {
   _id: String!
   isGroupChat: Boolean!
   users: [UserOutput!]
@@ -71,22 +71,17 @@ type ChatOutputData {
   lastMessage: CreateMessageOutput
 }
 
-type ChatOutput {
-  chats: [ChatOutputData!]!
-  totalChatCount: Int!
-}
-
 type Query {
   getMyInformation: UserBasicOutput!
-  findChats(chatInput: ChatInput): ChatOutput!
-  findChat(id: ID!): ChatOutputData!
+  findChats(ChatInput: ChatInput!): [ChatOutput!]!
+  findChat(id: ID!): ChatOutput!
   getMessages(getMessageInput: GetMessageInput!): [GetMessageOutput!]!
   getMessage(_id: String!): GetMessageOutput!
 }
 
 input ChatInput {
-  """Page number"""
-  pageNo: Int
+  """chat id"""
+  cursor: String
 }
 
 input GetMessageInput {
@@ -100,7 +95,7 @@ input GetMessageInput {
 type Mutation {
   createUser(createUserInput: CreateUserInput!): UserOutput!
   updateUser(updateUserInput: UpdateUserInput!): UserOutput!
-  createChat(createChatInput: CreateChatInput!): ChatOutputData!
+  createChat(createChatInput: CreateChatInput!): ChatOutput!
   updateChat(updateChatInput: UpdateChatInput!): ChatOutput!
   removeChat(id: String!): ChatOutput!
   createMessage(createMessageInput: CreateMessageInput!): CreateMessageOutput!

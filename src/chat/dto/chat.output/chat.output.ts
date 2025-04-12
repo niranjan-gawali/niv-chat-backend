@@ -1,9 +1,9 @@
-import { Field, ObjectType, Int } from '@nestjs/graphql';
+import { Field, ObjectType } from '@nestjs/graphql';
 import { CreateMessageOutput } from 'src/messages';
 import { UserOutput } from 'src/users';
 
 @ObjectType()
-export class ChatOutputData {
+export class ChatOutput {
   @Field()
   _id: string;
 
@@ -21,13 +21,6 @@ export class ChatOutputData {
 
   @Field(() => CreateMessageOutput, { nullable: true })
   lastMessage?: CreateMessageOutput;
-}
 
-@ObjectType()
-export class ChatOutput {
-  @Field(() => [ChatOutputData])
-  chats: ChatOutputData[];
-
-  @Field(() => Int)
-  totalChatCount: number;
+  createdAt: string;
 }

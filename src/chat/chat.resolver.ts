@@ -2,7 +2,7 @@ import { Query, Resolver, Mutation, Args, ID } from '@nestjs/graphql';
 import { ChatService } from './chat.service';
 import { CreateChatInput } from './dto/create-chat.input/create-chat.input';
 import { UpdateChatInput } from './dto/update-chat.input/update-chat.input';
-import { ChatOutput, ChatOutputData } from './dto/chat.output/chat.output';
+import { ChatOutput } from './dto/chat.output/chat.output';
 import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
@@ -12,7 +12,7 @@ import { ChatInput } from './dto/chat.output/chat.input';
 @Resolver()
 export class ChatResolver {
   constructor(private readonly chatService: ChatService) {}
-  @Mutation(() => ChatOutputData)
+  @Mutation(() => ChatOutput)
   @UseGuards(GqlAuthGuard)
   createChat(
     @Args('createChatInput') createChatInput: CreateChatInput,
@@ -34,19 +34,16 @@ export class ChatResolver {
     );
   }
 
-  // NOTE: Right now building pagination with offset but in future will need to convert it into cursor
-  @Query(() => ChatOutput, { name: 'findChats' })
+  @Query(() => [ChatOutput], { name: 'findChats' })
   @UseGuards(GqlAuthGuard)
   findChats(
+    @Args('ChatInput') chatInput: ChatInput,
     @CurrentUser() user: TokenPayload,
-    @Args('chatInput', { type: () => ChatInput, nullable: true })
-    chatInput?: ChatInput,
   ) {
-    const pageNo = chatInput?.pageNo ?? 1;
-    return this.chatService.findAll(user._id, pageNo);
+    return this.chatService.findAll(user._id, chatInput);
   }
 
-  @Query(() => ChatOutputData)
+  @Query(() => ChatOutput)
   @UseGuards(GqlAuthGuard)
   findChat(
     @Args('id', { type: () => ID }) id: string,

@@ -1,10 +1,13 @@
-import { InputType, Field, Int } from '@nestjs/graphql';
-import { IsInt, IsOptional } from 'class-validator';
+import { InputType, Field } from '@nestjs/graphql';
+import { IsMongoId, IsOptional } from 'class-validator';
 
 @InputType()
 export class ChatInput {
   @IsOptional()
-  @IsInt()
-  @Field(() => Int, { nullable: true, description: 'Page number' })
-  pageNo?: number;
+  @Field(() => String, {
+    nullable: true,
+    description: 'chat id',
+  })
+  @IsMongoId()
+  cursor?: string;
 }
