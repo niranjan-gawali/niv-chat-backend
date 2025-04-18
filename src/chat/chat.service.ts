@@ -114,7 +114,7 @@ export class ChatService {
         },
       },
       { $sort: { createdAt: -1 } },
-      { $limit: 1 },
+      { $limit: PAGE_LIMIT },
     ]);
   }
 

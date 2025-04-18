@@ -97,7 +97,7 @@ After starting the application, open your browser at [http://localhost:3000/grap
 
 ```graphql
 query findChats {
-  findChats(chatInput: { pageNo: 2 }) {
+  findChats(id: 'chat-id') {
     _id
     isGroupChat
     groupName
