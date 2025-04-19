@@ -10,6 +10,9 @@ export class CreateMessageOutput {
   @Field(() => String, { description: 'message content' })
   content: string;
 
+  @Field(() => String, { description: 'message content' })
+  senderId: string;
+
   @Field(() => Date, { description: 'Message creation date', nullable: true })
   createdAt?: Date;
 

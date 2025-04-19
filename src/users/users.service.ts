@@ -63,4 +63,9 @@ export class UsersService {
       },
     );
   }
+
+  // Get User
+  async getuser(userId: string) {
+    return await this.userRepository.findOne({ _id: userId });
+  }
 }

@@ -1,5 +1,6 @@
 import {
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -11,13 +12,19 @@ import { GetMessageInput } from './dto/get-message/get-message.input';
 import { GetMessageOutput } from './dto/get-message/get-message.output';
 import { UpdateMessageInput } from './dto/update-message/update-message.input';
 import { ChatService } from 'src/chat/chat.service';
-import { PAGE_LIMIT } from 'src/common/constants/common-constants';
+import {
+  MESSAGE_CREATED,
+  PAGE_LIMIT,
+  PUB_SUB,
+} from 'src/common/constants/common-constants';
+import { PubSub } from 'graphql-subscriptions';
 
 @Injectable()
 export class MessagesService {
   constructor(
     private readonly messageRepository: MessageRepository,
     private readonly chatService: ChatService,
+    @Inject(PUB_SUB) private readonly pubsub: PubSub,
   ) {}
 
   async create(createMessageInput: CreateMessageInput, userId: string) {
@@ -49,7 +56,25 @@ export class MessagesService {
       newMessage._id,
     );
 
-    return newMessage;
+    const completeMessage = await this.findOne(
+      newMessage._id.toString(),
+      userId,
+    );
+
+    // if (completeMessage && completeMessage.senderUser?.isLoggedInUser) {
+    //   completeMessage.senderUser.isLoggedInUser =
+    //     completeMessage?.senderUser?._id.toString() === userId ? true : false;
+
+    //   await this.pubsub.publish(MESSAGE_CREATED, {
+    //     messageCreated: completeMessage,
+    //   });
+    // }
+
+    await this.pubsub.publish(MESSAGE_CREATED, {
+      messageCreated: completeMessage,
+    });
+
+    return completeMessage;
   }
 
   async findAll(
@@ -208,5 +233,10 @@ export class MessagesService {
     }
 
     return deletedMessage;
+  }
+
+  // Subscription for the pubsub
+  messageCreated() {
+    return this.pubsub.asyncIterableIterator(MESSAGE_CREATED);
   }
 }

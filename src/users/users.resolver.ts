@@ -32,4 +32,10 @@ export class UsersResolver {
   getMyInformation(@CurrentUser() user: TokenPayload) {
     return user;
   }
+
+  @Query(() => UserOutput)
+  @UseGuards(GqlAuthGuard)
+  getUser(@CurrentUser() user: TokenPayload) {
+    return this.usersService.getuser(user._id);
+  }
 }
