@@ -60,4 +60,13 @@ export class ChatResolver {
   ) {
     return this.chatService.remove(id, user._id);
   }
+
+  @Query(() => [ChatOutput], { name: 'searchChats' })
+  @UseGuards(GqlAuthGuard)
+  searchChats(
+    @Args('searchParam') searchParam: string,
+    @CurrentUser() user: TokenPayload,
+  ) {
+    return this.chatService.searchChats(user._id, searchParam);
+  }
 }

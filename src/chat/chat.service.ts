@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateChatInput } from './dto/create-chat.input/create-chat.input';
 // import { UpdateChatInput } from './dto/update-chat.input/update-chat.input';
 import { ChatRepository } from './chat.repository';
@@ -8,18 +12,47 @@ import { UpdateChatInput } from './dto/update-chat.input/update-chat.input';
 import { ChatOutput } from './dto/chat.output/chat.output';
 import { PAGE_LIMIT } from 'src/common/constants/common-constants';
 import { ChatInput } from './dto/chat.output/chat.input';
+import { UserRepository } from 'src/users';
 
 @Injectable()
 export class ChatService {
-  constructor(private readonly chatRepository: ChatRepository) {}
+  constructor(
+    private readonly chatRepository: ChatRepository,
+    private readonly userRepository: UserRepository,
+  ) {}
   async create(createChatInput: CreateChatInput, userId: string) {
     try {
-      const { users, groupAdmin, ...rest } = createChatInput;
+      const { users, groupAdmin, isGroupChat, ...rest } = createChatInput;
 
       const userObjectIds = users.map((id) => new Types.ObjectId(id));
 
+      if (!isGroupChat && userObjectIds.length > 1) {
+        return new BadRequestException(
+          'Please pass only single userId for user to user communication !!!',
+        );
+      }
+
+      if (users.includes(userId)) {
+        return new BadRequestException(
+          'No need to pass the looged in users id !!!',
+        );
+      }
+
+      if (!isGroupChat) {
+        const existingChat = await this.chatRepository.findOne({
+          isGroupChat: false,
+          users: { $in: [new Types.ObjectId(userId)] },
+        });
+
+        if (existingChat) {
+          return new BadRequestException(
+            `Chat for the respective user alredy exists, with chatId : ${existingChat._id.toString()}`,
+          );
+        }
+      }
+
       const chatData: any = {
-        users: userObjectIds,
+        users: [...userObjectIds, userId],
         createdBy: userId,
         updatedBy: userId,
         ...rest,
@@ -186,5 +219,77 @@ export class ChatService {
     }
 
     return updatedChat;
+  }
+
+  // Search users
+  async searchChats(
+    userId: string,
+    searchParam: string,
+  ): Promise<ChatOutput[]> {
+    const matchedUsers = await this.userRepository.find({
+      $and: [
+        {
+          $or: [
+            { firstName: { $regex: `^${searchParam}`, $options: 'i' } },
+            { lastName: { $regex: `^${searchParam}`, $options: 'i' } },
+          ],
+        },
+        { _id: { $ne: new Types.ObjectId(userId) } },
+      ],
+    });
+
+    const matchedUserIds = matchedUsers.map((u) => u._id);
+
+    if (!matchedUserIds.length) {
+      return [];
+    }
+
+    return await this.chatRepository.model.aggregate([
+      { $match: { users: { $in: matchedUserIds } } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'users',
+          foreignField: '_id',
+          as: 'users',
+        },
+      },
+      {
+        $lookup: {
+          from: 'messages',
+          localField: 'lastMessage',
+          foreignField: '_id',
+          as: 'lastMessage',
+        },
+      },
+      {
+        $unwind: {
+          path: '$lastMessage',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          users: {
+            $map: {
+              input: '$users',
+              as: 'user',
+              in: {
+                $mergeObjects: [
+                  '$$user',
+                  {
+                    isLoggedInUser: {
+                      $eq: ['$$user._id', new Types.ObjectId(userId)],
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      { $sort: { createdAt: -1 } },
+      { $limit: PAGE_LIMIT },
+    ]);
   }
 }

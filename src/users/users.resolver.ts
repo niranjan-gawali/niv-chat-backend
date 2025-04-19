@@ -38,4 +38,13 @@ export class UsersResolver {
   getUser(@CurrentUser() user: TokenPayload) {
     return this.usersService.getuser(user._id);
   }
+
+  @Query(() => [UserOutput])
+  @UseGuards(GqlAuthGuard)
+  searchUser(
+    @Args('searchParam') searchParam: string,
+    @CurrentUser() user: TokenPayload,
+  ) {
+    return this.usersService.searchUsers(user._id, searchParam);
+  }
 }

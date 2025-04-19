@@ -7,6 +7,7 @@ import { UserRepository } from './user.repository';
 import { CreateUserInput } from './dto/create-user.input/create-user.input';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserInput } from './dto/update-user.input/update-user.input';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class UsersService {
@@ -67,5 +68,22 @@ export class UsersService {
   // Get User
   async getuser(userId: string) {
     return await this.userRepository.findOne({ _id: userId });
+  }
+
+  // Search Users
+  async searchUsers(userId: string, searchParam: string) {
+    return await this.userRepository.find({
+      $and: [
+        {
+          $or: [
+            { firstName: { $regex: `^${searchParam}`, $options: 'i' } },
+            { lastName: { $regex: `^${searchParam}`, $options: 'i' } },
+          ],
+        },
+        {
+          _id: { $ne: new Types.ObjectId(userId) },
+        },
+      ],
+    });
   }
 }
