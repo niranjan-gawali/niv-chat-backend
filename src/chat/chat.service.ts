@@ -39,20 +39,20 @@ export class ChatService {
       }
 
       if (!isGroupChat) {
-        const existingChat = await this.chatRepository.findOne({
+        const existingChat = await this.chatRepository.model.findOne({
           isGroupChat: false,
-          users: { $in: [new Types.ObjectId(userId)] },
+          users: { $in: [new Types.ObjectId(userObjectIds[0])] },
         });
 
         if (existingChat) {
           return new BadRequestException(
-            `Chat for the respective user alredy exists, with chatId : ${existingChat._id.toString()}`,
+            `You already have a chat with this user.`,
           );
         }
       }
 
       const chatData: any = {
-        users: [...userObjectIds, userId],
+        users: [...userObjectIds, new Types.ObjectId(userId)],
         createdBy: userId,
         updatedBy: userId,
         ...rest,

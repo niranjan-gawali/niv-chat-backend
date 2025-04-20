@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   Resolver,
   Query,
@@ -73,10 +74,9 @@ export class MessagesResolver {
     return this.messagesService.remove(_id, user._id);
   }
 
-  @Subscription(() => GetMessageOutput, {})
+  @Subscription(() => GetMessageOutput)
   messageCreated(@Args() _messageCreatedArgs: MessageCreatedArgs) {
     console.log('message created args : ', _messageCreatedArgs);
-
     return this.messagesService.messageCreated();
   }
 }
