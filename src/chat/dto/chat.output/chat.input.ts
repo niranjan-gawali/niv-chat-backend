@@ -1,5 +1,5 @@
 import { InputType, Field } from '@nestjs/graphql';
-import { IsMongoId, IsOptional } from 'class-validator';
+import { IsMongoId, IsOptional, IsString } from 'class-validator';
 
 @InputType()
 export class ChatInput {
@@ -10,4 +10,12 @@ export class ChatInput {
   })
   @IsMongoId()
   cursor?: string;
+
+  @IsOptional()
+  @Field(() => String, {
+    nullable: true,
+    description: 'search parameter',
+  })
+  @IsString()
+  searchParam?: string;
 }

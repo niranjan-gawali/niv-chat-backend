@@ -75,8 +75,8 @@ export class MessagesResolver {
   }
 
   @Subscription(() => GetMessageOutput)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   messageCreated(@Args() _messageCreatedArgs: MessageCreatedArgs) {
-    console.log('message created args : ', _messageCreatedArgs);
     return this.messagesService.messageCreated();
   }
 }

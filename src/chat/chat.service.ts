@@ -91,12 +91,50 @@ export class ChatService {
         userId,
       );
 
-      if (chatData && chatData.createdAt) {
-        match = { ...match, createdAt: { $lt: chatData.createdAt } };
+      // if (chatData && chatData.createdAt) {
+      //   match = { ...match, createdAt: { $lt: chatData.createdAt } };
+      // }
+      if (chatData?.createdAt) {
+        match.createdAt = { $lt: chatData.createdAt };
       }
     }
 
-    console.log(match);
+    // If searchParam exists, find matched users and add to match
+    if (chatInput.searchParam) {
+      const matchedUsers = await this.userRepository.find({
+        $and: [
+          {
+            $or: [
+              {
+                firstName: {
+                  $regex: `^${chatInput.searchParam}`,
+                  $options: 'i',
+                },
+              },
+              {
+                lastName: {
+                  $regex: `^${chatInput.searchParam}`,
+                  $options: 'i',
+                },
+              },
+            ],
+          },
+          { _id: { $ne: new Types.ObjectId(userId) } },
+        ],
+      });
+
+      const matchedUserIds = matchedUsers.map((u) => u._id);
+      if (!matchedUserIds.length) return [];
+
+      match = {
+        $and: [
+          { users: { $in: [new Types.ObjectId(userId)] } },
+          { users: { $in: matchedUserIds } },
+        ],
+      };
+    } else {
+      match = { users: { $in: [new Types.ObjectId(userId)] } };
+    }
 
     const lookupUser = {
       from: 'users',
