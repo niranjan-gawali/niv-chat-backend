@@ -1,4 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Resolver,
   Query,
@@ -74,7 +77,17 @@ export class MessagesResolver {
     return this.messagesService.remove(_id, user._id);
   }
 
-  @Subscription(() => GetMessageOutput)
+  @Subscription(() => GetMessageOutput, {
+    filter: (payload, variables: MessageCreatedArgs, context) => {
+      const userId = context.req.user._id;
+      const newCreateMessage = payload?.messageCreated;
+
+      return (
+        userId !== newCreateMessage.senderId.toString() &&
+        variables.chatIds.includes(newCreateMessage.chatId.toString())
+      );
+    },
+  })
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   messageCreated(@Args() _messageCreatedArgs: MessageCreatedArgs) {
     return this.messagesService.messageCreated();
