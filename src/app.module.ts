@@ -51,10 +51,6 @@ const graphqlConfigFactory = (
         MONGODB_URI: Joi.string().required(),
       }),
     }),
-    // GraphQLModule.forRoot<ApolloDriverConfig>({
-    //   driver: ApolloDriver,
-    //   autoSchemaFile: join(cwd(), 'src/schema.gql'),
-    // }),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
       imports: [AuthModule],
